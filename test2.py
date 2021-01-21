@@ -1,12 +1,14 @@
-import ai_easy
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Dec 17 23:06:30 2019
+@author: ASHUTOSH CHITRANSHI
+"""
+
 from tkinter import *
 from tkinter.font import Font
 from tkinter import messagebox
 from copy import deepcopy
-import functools as fc
-from tkinter import messagebox as msg
-
-ttt_list = [" "," "," "," "," "," "," "," "," ","O","X"]
+import time
 
 class Board:
     def __init__(self,other=None):
@@ -15,12 +17,97 @@ class Board:
         self.empty = ' '
         self.size = 3
         self.fields = {}
-        for y in range(self.size):
+        for y in range(self.size): 
             for x in range(self.size):
                 self.fields[x,y] = self.empty
         if other:
             self.__dict__ = deepcopy(other.__dict__)
     
+    def move(self,x,y):
+        board = Board(self)
+        board.fields[x,y] = board.player
+        (board.player,board.opponent) = (board.opponent,board.player)
+        return board
+    
+    def __minimax(self, player):
+        if self.won():
+            if player:
+                return (-1,None)
+            else:
+                return (+1,None)
+        elif self.tied():
+            return (0,None)
+        elif player:
+            best = (-2,None)
+            for x,y in self.fields:
+                if self.fields[x,y]==self.empty:
+                    value = self.move(x,y).__minimax(not player)[0]
+                    if value>best[0]:
+                        best = (value,(x,y))
+            return best
+        else:
+            best = (+2,None)
+            for x,y in self.fields:
+                if self.fields[x,y]==self.empty:
+                    value = self.move(x,y).__minimax(not player)[0]
+                    if value<best[0]:
+                        best = (value,(x,y))
+            return best
+
+    def best(self):
+        return self.__minimax(True)[1]
+
+    def best1(self,player):
+        if self.won():
+            if player:
+                return (-1,None)
+            else:
+                return (+1,None)
+        elif self.tied():
+            return (0,None)
+        elif player:
+            for x,y in self.fields:
+                if self.fields[x,y]==self.empty:
+                    return (2,(x,y))
+
+    def tied(self):
+        for (x,y) in self.fields:
+            if self.fields[x,y]==self.empty:
+                return False
+        return True
+
+    def won(self):
+        for y in range(self.size):
+            winning = []
+            for x in range(self.size):
+                if self.fields[x,y] == self.opponent:
+                    winning.append((x,y))
+            if len(winning) == self.size:
+                return winning
+
+        for x in range(self.size):
+            winning = []
+            for y in range(self.size):
+                if self.fields[x,y] == self.opponent:
+                    winning.append((x,y))
+            if len(winning) == self.size:
+                return winning
+        winning = []
+        for y in range(self.size):
+            x = y
+            if self.fields[x,y] == self.opponent:
+                winning.append((x,y))
+        if len(winning) == self.size:
+            return winning
+        winning = []
+        for y in range(self.size):
+            x = self.size-1-y
+            if self.fields[x,y] == self.opponent:
+                winning.append((x,y))
+        if len(winning) == self.size:
+            return winning
+        return None
+
 class Start:
     def __init__(self):
         self.root = Tk()
@@ -32,7 +119,7 @@ class Start:
         self.l2 = Label(self.root,text="Name :",font='Times 36 bold',bg='white', fg='black')
         self.b1 = Button(self.root,text='Start', font='Times 20 bold', bg='gray', fg='white', command=self.start)
         ## ID #####
-        self.id = Text(self.root,font='Times 35 bold',bg='gray')
+        self.id = Text(self.root,font='Times 35 bold',bg='gray') # 택스트 저장 
         self.id.place(x=245,y=480, width=300,height=60)
         ###########
         self.l1.place(x=30,y=180)
@@ -66,60 +153,207 @@ class Level:
         self.root.destroy()
         Advance().mainloop()
 
+timer = 10
+running = False
+ 
 class Beginner:
-    def loc(self,x,y):
-        self.buttons[x,y]['text']="O"
-        ttt_list[y*3+x]='O'
-        k=ai_easy.easy(ttt_list)
-        ttt_list[k]='X'
-        self.buttons[k%3,int(k/3)]['text']='X'
-
     def __init__(self):
         self.frame = Tk()
         self.frame.title('TicTacToe')
-        self.frame.geometry("950x547+500+270")
+        self.frame.geometry("950x591+500+270")
         self.frame.config(bg='white')
         self.frame.resizable(width=False, height=False)
         self.buttons = {}
         self.board = Board()
         for x,y in self.board.fields:
-            button = Button(self.frame, command=fc.partial(self.loc,x,y), font='Times 20 bold', bg='gray', fg='white',width=8, height=4, bd=4,text=' ')
+            handler = lambda x=x,y=y: self.move(x,y)
+            button = Button(self.frame, command=handler, font='Times 20 bold', bg='gray', fg='white', width=8, height=4, bd=4)
             button.grid(row=y, column=x)
-            self.buttons[x,y] = button
+            self.buttons[x,y] = button        
+        handler = lambda: self.reset()
+
+        def startTimer():       
+            if(running):
+                global timer
+                timer -= 1
+                time.sleep(1)
+                timeText.configure(text=str(timer))
+                if(timer ==0):
+                    self.reset()
+                    messagebox.showinfo("패배", "패배 하였습니다")
+            timeText.after(100, startTimer)
+        
+
+        def start():
+            global running
+            running = True
+        
+        timeText = Label(self.frame, text="10", font=('Times 16 bold', 110))
+        timeText.grid(row=0, column=3, columnspan=self.board.size, sticky=E+W) 
+                
+
+        startButton = Button(self.frame, text='start', font='Times 16 bold',bg='white', fg ='black', height=1, width=8, bd=4, command=start)
+        startButton.grid(row=self.board.size+1, column=0, columnspan=self.board.size, sticky=E+W)
+
+        button = Button(self.frame, text='reset', font='Times 16 bold', bg='white', fg='black', height=1, width=8, bd=4, command=handler)
+        button.grid(row=self.board.size+2, column=0, columnspan=self.board.size, sticky=E+W)
         exitBrt = Button(self.frame, text='exit', font='Times 16 bold', bg='white', fg='black', height=1, width=8, bd=4, command=lambda: self.exit())
-        exitBrt.grid(row=self.board.size+2, column=0, columnspan=self.board.size, sticky=E+W)
+        exitBrt.grid(row=self.board.size+3, column=0, columnspan=self.board.size, sticky=E+W)
+        startTimer()
+        self.frame.mainloop()
+        self.update()
+        
+        
+    def move(self,x,y):
+        self.frame.config(cursor="watch")
+        self.frame.update()
+        self.board = self.board.move(x,y)
+        self.update()
+        move = self.board.best1(True)[1]
+        if move:
+          self.board = self.board.move(*move)
+          self.update()
+        self.frame.config(cursor="")
+
+    def update(self):
+        for (x,y) in self.board.fields:
+            text = self.board.fields[x,y]
+            self.buttons[x,y]['text'] = text
+            self.buttons[x,y]['disabledforeground'] = 'black'
+            if text==self.board.empty:
+                self.buttons[x,y]['state'] = 'normal'
+            else:
+                self.buttons[x,y]['state'] = 'disabled'
+
+        winning = self.board.won()
+        if winning:
+            global running 
+            running = False
+            for x,y in winning:
+                self.buttons[x,y]['disabledforeground'] = 'red'
+            for x,y in self.buttons:
+                self.buttons[x,y]['state'] = 'disabled'
+            if self.buttons[winning[0]]['text'] == 'O':
+                messagebox.showinfo("패배", "패배 하였습니다")
+            else: messagebox.showinfo("승리", "승리 하였습니다")
+        for (x,y) in self.board.fields:
+            self.buttons[x,y].update()
+        global timer
+        timer = 10
 
     def mainloop(self):
         self.frame.mainloop()
+    def reset(self):
+        self.board = Board()
+        global running 
+        running = False
+        global timer
+        timer = 10
+        self.update()
     def exit(self):
         self.frame.destroy()
         Level().mainloop()
+ 
+
 
 class Advance:
-    def loc(self,x,y):
-        self.buttons[x,y]['text']="O"
-        ttt_list[y*3+x]='O'
-        k=ai_easy.ai(ttt_list)
-        ttt_list[k]='X'
-        self.buttons[k%3,int(k/3)]['text']='X'
-
     def __init__(self):
         self.frame = Tk()
         self.frame.title('TicTacToe')
-        self.frame.geometry("950x547+500+270")
+        self.frame.geometry("950x591+500+270")
         self.frame.config(bg='white')
         self.frame.resizable(width=False, height=False)
         self.buttons = {}
         self.board = Board()
         for x,y in self.board.fields:
-            button = Button(self.frame, command=fc.partial(self.loc,x,y), font='Times 20 bold', bg='gray', fg='white', width=8, height=4, bd=4,text=' ')
+            handler = lambda x=x,y=y: self.move(x,y)
+            button = Button(self.frame, command=handler, font='Times 20 bold', bg='gray', fg='white', width=8, height=4, bd=4)
             button.grid(row=y, column=x)
             self.buttons[x,y] = button
-        exitBrt = Button(self.frame, text='exit', font='Times 16 bold', bg='white', fg='black', height=1, width=8, bd=4, command=lambda: self.exit())
-        exitBrt.grid(row=self.board.size+2, column=0, columnspan=self.board.size, sticky=E+W)
+        handler = lambda: self.reset()
+        
+        def startTimer():             
+            if(running):
+                global timer
+                timer -= 1
+                time.sleep(1)
+                timeText.configure(text=str(timer))
+                if(timer ==0):
+                    self.reset()
+                    messagebox.showinfo("패배", "패배 하였습니다")
+            timeText.after(100, startTimer)  
 
+        def start():
+            global running
+            running = True
+                 
+
+        
+        timeText = Label(self.frame, text="10", font=('Times 16 bold', 110))
+        timeText.grid(row=0, column=3, columnspan=self.board.size, sticky=E+W) 
+                
+
+        startButton = Button(self.frame, text='start', font='Times 16 bold',bg='white', fg ='black', height=1, width=8, bd=4, command=start)
+        startButton.grid(row=self.board.size+1, column=0, columnspan=self.board.size, sticky=E+W)
+
+        button = Button(self.frame, text='reset', font='Times 16 bold', bg='white', fg='black', height=1, width=8, bd=4, command=handler)
+        button.grid(row=self.board.size+2, column=0, columnspan=self.board.size, sticky=E+W)
+        exitBrt = Button(self.frame, text='exit', font='Times 16 bold', bg='white', fg='black', height=1, width=8, bd=4, command=lambda: self.exit())
+        exitBrt.grid(row=self.board.size+3, column=0, columnspan=self.board.size, sticky=E+W)
+        startTimer()
+        self.frame.mainloop()
+        self.update()
+        
+
+    def move(self,x,y):
+        self.frame.config(cursor="watch")
+        self.frame.update()
+        self.board = self.board.move(x,y)
+        self.update()
+        move = self.board.best()
+        if move:
+            self.board = self.board.move(*move)
+            self.update()
+        self.frame.config(cursor="")
+
+    def update(self):
+        for (x,y) in self.board.fields:
+            text = self.board.fields[x,y]
+            self.buttons[x,y]['text'] = text
+            self.buttons[x,y]['disabledforeground'] = 'black'
+            if text==self.board.empty:
+                self.buttons[x,y]['state'] = 'normal'
+            else:
+                self.buttons[x,y]['state'] = 'disabled'
+        winning = self.board.won()
+        if winning:
+            global running 
+            running = False
+            for x,y in winning:
+                self.buttons[x,y]['disabledforeground'] = 'red'
+            for x,y in self.buttons:
+                self.buttons[x,y]['state'] = 'disabled'
+            if self.buttons[winning[0]]['text'] == 'O':
+                messagebox.showinfo("패배", "패배 하였습니다")
+            else: messagebox.showinfo("승리", "승리 하였습니다")
+        if self.board.tied():
+            running = False
+            messagebox.showinfo("무승부", "무승부!")
+        for (x,y) in self.board.fields:
+            self.buttons[x,y].update()
+        global timer
+        timer = 10
+        
+        
     def mainloop(self):
         self.frame.mainloop()
+    def reset(self):
+        self.board = Board()
+        global running 
+        running = False
+        global timer
+        timer = 10
+        self.update()
     def exit(self):
         self.frame.destroy()
         Level().mainloop()
