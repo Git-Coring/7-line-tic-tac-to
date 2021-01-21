@@ -1,4 +1,5 @@
 import random
+from tkinter import messagebox as msg
 
 def ai(a):
     
@@ -12,6 +13,13 @@ def ai(a):
             arr.append(a[i+j])
             if (arr.count('X')==2 and arr.count(' ')==1)or(arr.count('O')==2 and arr.count(' ')==1): 
                 return i+j-2+arr.index(' ')
+            elif arr.count('X')==3:
+                msg.showinfo('X가 이겼습니다.') 
+                exit()
+            elif arr.count('O')==3:
+                msg.showinfo('O가 이겼습니다.') 
+                exit()
+            
         arr = [] # 빈리스트로 초기화
 
 
@@ -21,6 +29,12 @@ def ai(a):
             arr.append(a[i+j])
             if (arr.count('X')==2 and arr.count(' ')==1)or(arr.count('O')==2 and arr.count(' ')==1):
                 return i+j+(-3)*(2-arr.index(' '))
+            elif arr.count('X')==3:
+                msg.showinfo('X가 이겼습니다.') 
+                exit()
+            elif arr.count('O')==3:
+                msg.showinfo('O가 이겼습니다.') 
+                exit()
         arr = [] # 빈리스트로 초기화
     
     # 대각선 탐색
@@ -28,6 +42,12 @@ def ai(a):
         arr.append(a[i])
         if (arr.count('X')==2 and arr.count(' ')==1)or(arr.count('O')==2 and arr.count(' ')==1):
             return arr.index(' ')*4
+        elif arr.count('X')==3:
+            msg.showinfo('X가 이겼습니다.') 
+            exit()
+        elif arr.count('O')==3:
+            msg.showinfo('O가 이겼습니다.') 
+            exit()
     arr = []  # 빈리스트로 초기화
 
 
@@ -35,7 +55,13 @@ def ai(a):
     for i in range(2,7,2):
         arr.append(a[i])
         if (arr.count('X')==2 and arr.count(' ')==1)or(arr.count('O')==2 and arr.count(' ')==1):
-            return arr.index(' ')*2+2     
+            return arr.index(' ')*2+2  
+        elif arr.count('X')==3:
+            msg.showinfo('X가 이겼습니다.') 
+            exit()
+        elif arr.count('O')==3:
+            msg.showinfo('O가 이겼습니다.') 
+            exit()   
     arr = []  # 빈리스트로 초기화
 
 
@@ -58,6 +84,57 @@ def ai(a):
 
 # easy 버전
 def easy(a):
+
+    arr = []
+    # 가로줄 탐색
+    for i in range(0,9,3):
+        for j in range(0,3,1):
+            arr.append(a[i+j])
+            if arr.count('X')==3:
+                msg.showinfo('X가 이겼습니다.') 
+                exit()
+            elif arr.count('O')==3:
+                msg.showinfo('O가 이겼습니다.') 
+                exit()
+            
+        arr = [] # 빈리스트로 초기화
+
+
+    # 세로줄 탐색
+    for i in range(0,3,1):
+        for j in range(0,9,3):
+            arr.append(a[i+j])
+            if arr.count('X')==3:
+                msg.showinfo('X가 이겼습니다.') 
+                exit()
+            elif arr.count('O')==3:
+                msg.showinfo('O가 이겼습니다.') 
+                exit()
+        arr = [] # 빈리스트로 초기화
+    
+    # 대각선 탐색
+    for i in range(0,9,4):
+        arr.append(a[i])
+        if arr.count('X')==3:
+            msg.showinfo('X가 이겼습니다.') 
+            exit()
+        elif arr.count('O')==3:
+            msg.showinfo('O가 이겼습니다.') 
+            exit()
+    arr = []  # 빈리스트로 초기화
+
+
+    # 대각선 탐색
+    for i in range(2,7,2):
+        arr.append(a[i])
+        if arr.count('X')==3:
+            msg.showinfo('X가 이겼습니다.') 
+            exit()
+        elif arr.count('O')==3:
+            msg.showinfo('O가 이겼습니다.') 
+            exit()   
+    arr = []  # 빈리스트로 초기화
+
     while True:
         random_num = random.randrange(0,9)
         if a[random_num]==' ':
