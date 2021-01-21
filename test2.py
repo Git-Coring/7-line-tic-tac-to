@@ -182,7 +182,7 @@ class Beginner:
                 if(timer ==0):
                     self.reset()
                     messagebox.showinfo("패배", "패배 하였습니다")
-            timeText.after(500, startTimer)
+            timeText.after(100, startTimer)
         
 
         def start():
@@ -282,7 +282,7 @@ class Advance:
                 if(timer ==0):
                     self.reset()
                     messagebox.showinfo("패배", "패배 하였습니다")
-            timeText.after(500, startTimer)  
+            timeText.after(100, startTimer)  
 
         def start():
             global running
